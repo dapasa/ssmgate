@@ -309,6 +309,7 @@ ssmgate/
 │   └── ui/                     salida con colores (respeta NO_COLOR y TTY)
 ├── docs/
 │   ├── DESARROLLO_IA.md        cómo se usó la IA en el proyecto
+│   ├── GUION_VIDEO.md          guion del vídeo de presentación
 │   └── slides/                 presentación del TFM
 ├── .github/workflows/          CI (lint + tests + build) y Release (GoReleaser)
 ├── .goreleaser.yaml            empaquetado multiplataforma
