@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.11
+
+  test:
+    name: Test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Unit tests
+        run: go test -race -coverprofile=coverage.out ./...
+        env:
+          CGO_ENABLED: "1"
+      - name: Coverage summary
+        if: matrix.os == 'ubuntu-24.04'
+        run: go tool cover -func=coverage.out | tail -1
+      - name: Demo smoke test (offline, no AWS)
+        shell: bash
+        run: |
+          go build -o ssmgate .
+          ./ssmgate --demo envs
+          ./ssmgate --demo config validate
+          printf 'whoami\nexit\n' | ./ssmgate --demo shell bastion --env dev
+
+  build:
+    name: Cross-compile
+    needs: [lint, test]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: make dist

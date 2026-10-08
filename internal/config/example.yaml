@@ -1,0 +1,71 @@
+# ssmgate configuration
+#
+# Default location: <user config dir>/ssmgate/config.yaml
+#   Linux   ~/.config/ssmgate/config.yaml
+#   macOS   ~/Library/Application Support/ssmgate/config.yaml
+#   Windows %AppData%\ssmgate\config.yaml
+# Override with --config <path> or SSMGATE_CONFIG.
+#
+# All values below are FICTITIOUS examples. Replace them with your own.
+
+# IAM Identity Center (SSO) portal. Only needed if an environment uses SSO
+# (i.e. it has no `profile`).
+sso:
+  start_url: https://my-company.awsapps.com/start
+  region: us-east-1
+
+environments:
+  dev:
+    region: us-east-1
+    account_id: "111111111111"
+    hosts:
+      # name: { instance_id, role } — role is the SSO permission set needed
+      # to open an SSM session on that instance.
+      bastion:
+        instance_id: i-0123456789abcdef0
+        role: BastionSessionOperator
+      vpn:
+        instance_id: i-0fedcba9876543210
+        role: VpnSessionOperator
+    db:
+      endpoint: dev-db.abcdefghijkl.us-east-1.rds.amazonaws.com
+      port: 5432
+      name: appdb
+      local_port: 55432      # localhost port the tunnel binds
+      via: bastion           # host the tunnel goes through
+      role: RDSOperator      # SSO role for the tunnel + IAM token
+      auth: iam              # iam (15-min token) | password
+      ssl_mode: verify-ca    # CA bundle downloaded automatically for RDS
+      # user: alice          # default: your SSO username before the "@"
+
+  prod:
+    region: us-east-1
+    account_id: "222222222222"
+    confirm: true            # type "prod" before every action (skip with --yes)
+    hosts:
+      bastion:
+        instance_id: i-0aaaaaaaaaaaaaaaa
+        role: BastionSessionOperator
+    db:
+      endpoint: prod-db.cluster-abcdefghijkl.us-east-1.rds.amazonaws.com
+      name: appdb
+      local_port: 55433      # different from dev so both tunnels can coexist
+      via: bastion
+      role: RDSOperator
+
+  # An environment can also reuse an existing AWS CLI profile instead of the
+  # built-in SSO login (roles are then not needed).
+  sandbox:
+    region: eu-west-1
+    profile: sandbox-admin
+    hosts:
+      bastion:
+        instance_id: i-0bbbbbbbbbbbbbbbb
+    db:
+      endpoint: sandbox-db.abcdefghijkl.eu-west-1.rds.amazonaws.com
+      name: sandboxdb
+      local_port: 55434
+      via: bastion
+      auth: password
+      ssl_mode: require
+      user: postgres

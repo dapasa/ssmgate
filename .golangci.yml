@@ -1,0 +1,22 @@
+version: "2"
+run:
+  modules-download-mode: readonly
+  tests: true
+linters:
+  enable:
+    - bodyclose
+    - errorlint
+    - gocritic
+    - misspell
+    - unconvert
+  exclusions:
+    generated: lax
+    rules:
+      # Error strings are user-facing CLI messages: capitals and punctuation
+      # are intentional.
+      - linters:
+          - staticcheck
+        text: "ST1005:"
+formatters:
+  enable:
+    - gofmt

@@ -1,0 +1,48 @@
+# GoReleaser config for ssmgate.
+# Cross-compiles the single static binary for Windows/Linux/macOS on
+# amd64+arm64 and packages per-OS archives. Run: `goreleaser release --snapshot
+# --clean` for a local dry run, or `goreleaser release` on a tag.
+version: 2
+
+project_name: ssmgate
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: ssmgate
+    main: .
+    binary: ssmgate
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: default
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+
+checksum:
+  name_template: checksums.txt
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-snapshot"
+
+changelog:
+  use: git
+  sort: asc
