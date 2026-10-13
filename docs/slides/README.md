@@ -1,4 +1,4 @@
 # Presentación
 
-- Versión online: _TODO: añadir URL pública_
-- Versión PDF: `ssmgate-tfm.pdf` (exportada de la presentación online)
+- **PDF:** [ssmgate-tfm.pdf](ssmgate-tfm.pdf) (13 diapositivas, 16:9)
+- **HTML:** [ssmgate-tfm.html](ssmgate-tfm.html) (la misma presentación; se abre en cualquier navegador)

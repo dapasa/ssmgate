@@ -1,0 +1,307 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>ssmgate — TFM</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+@page { size: 1920px 1080px; margin: 0 }
+html, body { margin: 0; padding: 0; background: #555 }
+section { width: 1920px; height: 1080px; box-sizing: border-box; position: relative; overflow: hidden; page-break-after: always; break-after: page }
+h1, h2, h3, p, ul, ol { margin: 0 }
+ul { padding-left: 1.2em }
+table { border-collapse: collapse; width: 100% }
+th, td { padding: 0.35em 0.6em; border-bottom: 1px solid #DDD8CC; text-align: left }
+th { font-weight: 600 }
+</style></head><body>
+<section id="cover" data-transition="fade" style="background:#0F1A24;color:#F4F2EC;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:center;gap:40px">
+<div style="position:absolute;left:0;top:0;width:24px;height:1080px;background:#E8833A"></div>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:32px;color:#E8833A">$ ssmgate db --env dev</p>
+<h1 style="font-size:160px;font-weight:700;line-height:1.0;letter-spacing:-2px">ssmgate</h1>
+<p style="font-size:56px;line-height:1.2;color:#C9D3DC;width:1300px">Acceso seguro a servidores y bases de datos privadas de AWS. Sin SSH, sin puertos abiertos.</p>
+<div style="flex:none;height:24px"></div>
+<p style="font-size:32px;color:#8FA1B3">Trabajo Fin de Máster · Máster en Programación con IA</p>
+<p style="font-size:32px;color:#F4F2EC;font-weight:600">Daniel Passarelli · Octubre 2026</p>
+
+</section>
+<section id="problema" data-transition="fade" style="background:#F4F2EC;color:#0F1A24;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:600;color:#B5561A;letter-spacing:2px;text-transform:uppercase">El problema</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">Llegar a una base de datos privada suele pasar por un bastion SSH</h2>
+</div>
+<div style="display:flex;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFDF8;padding:48px;border:1px solid #DDD8CC;border-radius:16px">
+
+<h3 style="font-size:40px;font-weight:600">Puerto 22 abierto</h3>
+<p style="font-size:30px;line-height:1.4;color:#4A5568">Un servidor expuesto a internet es superficie de ataque permanente.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFDF8;padding:48px;border:1px solid #DDD8CC;border-radius:16px">
+
+<h3 style="font-size:40px;font-weight:600">Claves compartidas</h3>
+<p style="font-size:30px;line-height:1.4;color:#4A5568">Claves SSH repartidas por el equipo, difíciles de rotar y de revocar.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFDF8;padding:48px;border:1px solid #DDD8CC;border-radius:16px">
+
+<h3 style="font-size:40px;font-weight:600">Poca trazabilidad</h3>
+<p style="font-size:30px;line-height:1.4;color:#4A5568">¿Quién entró, cuándo y con qué permisos? Un problema para auditorías.</p>
+</div>
+</div>
+
+</section>
+<section id="solucion" data-transition="fade" style="background:#0F1A24;color:#F4F2EC;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:center;gap:56px">
+<p style="font-size:28px;font-weight:600;color:#E8833A;letter-spacing:2px;text-transform:uppercase">La solución</p>
+<h2 style="font-size:80px;font-weight:600;line-height:1.1;width:1500px">AWS SSM Session Manager, reducido a un solo comando</h2>
+<div style="display:flex;flex-direction:column;gap:12px;background:#17263A;padding:48px;border-radius:16px;border:1px solid #2A3D55">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:44px;color:#F4F2EC">$ ssmgate db --env dev</p>
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:28px;color:#8FA1B3">login SSO → rol → túnel SSM → token IAM 15 min → psql</p>
+</div>
+<p style="font-size:36px;line-height:1.4;color:#C9D3DC;width:1500px">Conexión <b>saliente</b> desde la instancia: cero puertos de entrada. Cada sesión ligada a tu identidad SSO y registrada en AWS.</p>
+
+</section>
+<section id="comandos" data-transition="fade" style="background:#F4F2EC;color:#0F1A24;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:600;color:#B5561A;letter-spacing:2px;text-transform:uppercase">Qué hace</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">Tres comandos principales</h2>
+</div>
+<div style="display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;align-items:center;gap:48px;background:#0F1A24;padding:36px 48px;border-radius:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:36px;color:#E8833A;width:720px">ssmgate shell bastion</p>
+<p style="font-size:32px;color:#F4F2EC">Shell interactiva en cualquier instancia gestionada por SSM, con un rol SSO por host</p>
+</div>
+<div style="display:flex;align-items:center;gap:48px;background:#0F1A24;padding:36px 48px;border-radius:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:36px;color:#E8833A;width:720px">ssmgate db</p>
+<p style="font-size:32px;color:#F4F2EC">Túnel a la base de datos privada + token IAM de 15 minutos + psql con SSL</p>
+</div>
+<div style="display:flex;align-items:center;gap:48px;background:#0F1A24;padding:36px 48px;border-radius:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:36px;color:#E8833A;width:720px">ssmgate tunnel</p>
+<p style="font-size:32px;color:#F4F2EC">Túnel abierto para DBeaver o TablePlus; el token se copia al portapapeles</p>
+</div>
+</div>
+<p style="font-size:28px;color:#4A5568">Y además: <b>envs</b>, <b>config init · validate</b>, <b>doctor</b> y el modo <b>--demo</b>. Todos exigen <b>--env</b> explícito.</p>
+
+</section>
+<section id="arquitectura" data-transition="fade" style="background:#F4F2EC;color:#0F1A24;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:600;color:#B5561A;letter-spacing:2px;text-transform:uppercase">Cómo funciona</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">El recorrido de <span style="color:#B5561A">ssmgate db</span></h2>
+</div>
+<div style="display:flex;align-items:center;gap:16px">
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#0F1A24;padding:32px;border-radius:16px">
+<h3 style="font-size:32px;font-weight:600;color:#E8833A">ssmgate</h3>
+<p style="font-size:24px;color:#C9D3DC">tu portátil</p>
+</div>
+<p style="font-size:44px;color:#4A5568">&#8594;</p>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#FFFDF8;padding:32px;border:1px solid #DDD8CC;border-radius:16px">
+<h3 style="font-size:32px;font-weight:600">AWS SSO</h3>
+<p style="font-size:24px;color:#4A5568">login y rol</p>
+</div>
+<p style="font-size:44px;color:#4A5568">&#8594;</p>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#FFFDF8;padding:32px;border:1px solid #DDD8CC;border-radius:16px">
+<h3 style="font-size:32px;font-weight:600">AWS SSM</h3>
+<p style="font-size:24px;color:#4A5568">StartSession</p>
+</div>
+<p style="font-size:44px;color:#4A5568">&#8594;</p>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#FFFDF8;padding:32px;border:1px solid #DDD8CC;border-radius:16px">
+<h3 style="font-size:32px;font-weight:600">Instancia</h3>
+<p style="font-size:24px;color:#4A5568">agente SSM</p>
+</div>
+<p style="font-size:44px;color:#4A5568">&#8594;</p>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#FFFDF8;padding:32px;border:1px solid #DDD8CC;border-radius:16px">
+<h3 style="font-size:32px;font-weight:600">RDS</h3>
+<p style="font-size:24px;color:#4A5568">subred privada</p>
+</div>
+</div>
+<div style="display:flex;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;border-top:4px solid #B5561A;padding:24px 0 0 0">
+<h3 style="font-size:32px;font-weight:600">Login sin navegador</h3>
+<p style="font-size:28px;line-height:1.4;color:#4A5568">OIDC device flow: URL y código, funciona en WSL o por SSH.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;border-top:4px solid #B5561A;padding:24px 0 0 0">
+<h3 style="font-size:32px;font-weight:600">Túnel local</h3>
+<p style="font-size:28px;line-height:1.4;color:#4A5568">session-manager-plugin oficial reenvía localhost:55432 a la BD.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;border-top:4px solid #B5561A;padding:24px 0 0 0">
+<h3 style="font-size:32px;font-weight:600">Sin contraseñas</h3>
+<p style="font-size:28px;line-height:1.4;color:#4A5568">Token IAM de 15 min firmado para el endpoint real, SSL verify-ca.</p>
+</div>
+</div>
+
+</section>
+<section id="config" data-transition="fade" style="background:#0F1A24;color:#F4F2EC;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center">
+<div style="display:flex;flex-direction:column;gap:32px">
+<p style="font-size:28px;font-weight:600;color:#E8833A;letter-spacing:2px;text-transform:uppercase">Genérico</p>
+<h2 style="font-size:64px;font-weight:600;line-height:1.15">Tu infraestructura vive en un YAML, no en el código</h2>
+<ul style="font-size:30px;line-height:1.5;color:#C9D3DC">
+<li>Entornos, cuentas, hosts, roles y BBDD</li>
+<li>SSO integrado o perfil de la AWS CLI</li>
+<li>Validación estricta con todos los errores a la vez</li>
+<li><b>confirm: true</b>&#160;protege producción</li>
+</ul>
+</div>
+<div style="display:flex;flex-direction:column;background:#17263A;padding:40px;border-radius:16px;border:1px solid #2A3D55">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;line-height:1.55;color:#C9D3DC">environments:<br>&#160;&#160;<span style="color:#E8833A">prod</span>:<br>&#160;&#160;&#160;&#160;region: us-east-1<br>&#160;&#160;&#160;&#160;account_id: "222222222222"<br>&#160;&#160;&#160;&#160;confirm: true<br>&#160;&#160;&#160;&#160;hosts:<br>&#160;&#160;&#160;&#160;&#160;&#160;bastion:<br>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;instance_id: i-0aaa…<br>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;role: BastionSessionOperator<br>&#160;&#160;&#160;&#160;db:<br>&#160;&#160;&#160;&#160;&#160;&#160;endpoint: prod-db.…rds.amazonaws.com<br>&#160;&#160;&#160;&#160;&#160;&#160;name: appdb<br>&#160;&#160;&#160;&#160;&#160;&#160;local_port: 55433<br>&#160;&#160;&#160;&#160;&#160;&#160;via: bastion<br>&#160;&#160;&#160;&#160;&#160;&#160;role: RDSOperator</p>
+</div>
+
+</section>
+<section id="funcionalidades" data-transition="fade" style="background:#F4F2EC;color:#0F1A24;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:600;color:#B5561A;letter-spacing:2px;text-transform:uppercase">Funcionalidades</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">Pensado para el día a día de un equipo</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px">
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFDF8;padding:40px;border:1px solid #DDD8CC;border-radius:16px">
+
+<h3 style="font-size:34px;font-weight:600">Rol por host</h3>
+<p style="font-size:26px;line-height:1.4;color:#4A5568">Mínimo privilegio: cada servidor exige su propio rol SSO.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFDF8;padding:40px;border:1px solid #DDD8CC;border-radius:16px">
+
+<h3 style="font-size:34px;font-weight:600">Prod protegido</h3>
+<p style="font-size:26px;line-height:1.4;color:#4A5568">Hay que escribir el nombre del entorno antes de actuar.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFDF8;padding:40px;border:1px solid #DDD8CC;border-radius:16px">
+
+<h3 style="font-size:34px;font-weight:600">Túneles en paralelo</h3>
+<p style="font-size:26px;line-height:1.4;color:#4A5568">Un puerto local por entorno: dev y prod a la vez.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFDF8;padding:40px;border:1px solid #DDD8CC;border-radius:16px">
+
+<h3 style="font-size:34px;font-weight:600">Sesión reutilizable</h3>
+<p style="font-size:26px;line-height:1.4;color:#4A5568">Caché SSO compatible con la AWS CLI.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFDF8;padding:40px;border:1px solid #DDD8CC;border-radius:16px">
+
+<h3 style="font-size:34px;font-weight:600">Multiplataforma</h3>
+<p style="font-size:26px;line-height:1.4;color:#4A5568">Windows, Linux, macOS y WSL; amd64 y arm64.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFDF8;padding:40px;border:1px solid #DDD8CC;border-radius:16px">
+
+<h3 style="font-size:34px;font-weight:600">doctor</h3>
+<p style="font-size:26px;line-height:1.4;color:#4A5568">Diagnostica config, plugin y psql en un comando.</p>
+</div>
+</div>
+
+</section>
+<section id="stack" data-transition="fade" style="background:#F4F2EC;color:#0F1A24;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:600;color:#B5561A;letter-spacing:2px;text-transform:uppercase">Stack tecnológico</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">Un binario estático, sin dependencias</h2>
+</div>
+<table style="font-size:30px;color:#0F1A24">
+<tr><th style="width:28%;text-align:left">Área</th><th style="width:72%;text-align:left">Tecnología</th></tr>
+<tr><td>Lenguaje</td><td>Go 1.26 · CGO_ENABLED=0</td></tr>
+<tr><td>CLI y config</td><td>spf13/cobra · YAML (yaml.v3, claves estrictas)</td></tr>
+<tr><td>AWS</td><td>SDK for Go v2: SSO OIDC, SSO, STS, SSM, RDS auth</td></tr>
+<tr><td>Canal SSM</td><td>session-manager-plugin oficial de AWS</td></tr>
+<tr><td>Calidad</td><td>go test · golangci-lint v2 · gofmt</td></tr>
+<tr><td>CI/CD</td><td>GitHub Actions · GoReleaser → GitHub Releases</td></tr>
+<tr><td>Desarrollo</td><td>Claude Code como asistente de programación</td></tr>
+</table>
+
+</section>
+<section id="calidad" data-transition="fade" style="background:#0F1A24;color:#F4F2EC;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:600;color:#E8833A;letter-spacing:2px;text-transform:uppercase">Calidad</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">Probado sin depender de AWS</h2>
+</div>
+<div style="display:flex;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;border-top:4px solid #E8833A;padding:32px 0 0 0">
+<p style="font-size:120px;font-weight:700;line-height:1.0;color:#E8833A">38</p>
+<p style="font-size:30px;color:#C9D3DC">tests unitarios y end-to-end</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;border-top:4px solid #E8833A;padding:32px 0 0 0">
+<p style="font-size:120px;font-weight:700;line-height:1.0;color:#E8833A">3</p>
+<p style="font-size:30px;color:#C9D3DC">sistemas operativos en CI</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;border-top:4px solid #E8833A;padding:32px 0 0 0">
+<p style="font-size:120px;font-weight:700;line-height:1.0;color:#E8833A">6</p>
+<p style="font-size:30px;color:#C9D3DC">binarios por release</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;border-top:4px solid #E8833A;padding:32px 0 0 0">
+<p style="font-size:120px;font-weight:700;line-height:1.0;color:#E8833A">0</p>
+<p style="font-size:30px;color:#C9D3DC">avisos de golangci-lint</p>
+</div>
+</div>
+<p style="font-size:32px;line-height:1.45;color:#C9D3DC;width:1500px">La interfaz <b>Connector</b> separa la CLI del backend: los tests recorren el árbol de comandos real con el conector demo, sin red.</p>
+
+</section>
+<section id="ia" data-transition="fade" style="background:#F4F2EC;color:#0F1A24;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:600;color:#B5561A;letter-spacing:2px;text-transform:uppercase">Desarrollo con IA</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">Claude Code como compañero de programación</h2>
+</div>
+<div style="display:flex;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFDF8;padding:48px;border:1px solid #DDD8CC;border-radius:16px">
+<h3 style="font-size:36px;font-weight:600">Lo que delegué</h3>
+<ul style="font-size:28px;line-height:1.5;color:#4A5568">
+<li>Port del script bash a Go</li>
+<li>Refactor a configuración genérica</li>
+<li>Modo demo, tests y CI/CD</li>
+<li>Documentación</li>
+</ul>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFDF8;padding:48px;border:1px solid #DDD8CC;border-radius:16px">
+<h3 style="font-size:36px;font-weight:600">Cómo lo verifiqué</h3>
+<ul style="font-size:28px;line-height:1.5;color:#4A5568">
+<li>vet, lint y tests en cada cambio</li>
+<li>Pruebas manuales de cada comando</li>
+<li>Revisión del diff y las decisiones de seguridad</li>
+<li>Smoke test del modo demo en cada push</li>
+</ul>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#0F1A24;padding:48px;border-radius:16px">
+<h3 style="font-size:36px;font-weight:600;color:#E8833A">Lo que aprendí</h3>
+<ul style="font-size:28px;line-height:1.5;color:#C9D3DC">
+<li>El contexto del dominio evita "arreglos" erróneos</li>
+<li>Pedir verificación ejecutable</li>
+<li>Diseñar para testear</li>
+</ul>
+</div>
+</div>
+
+</section>
+<section id="demo" data-transition="fade" style="background:#E8833A;color:#0F1A24;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:center;gap:48px">
+<p style="font-size:28px;font-weight:600;letter-spacing:2px;text-transform:uppercase">Pruébalo en un minuto</p>
+<h2 style="font-size:96px;font-weight:700;line-height:1.05;width:1500px">Modo --demo: sin cuenta de AWS</h2>
+<div style="display:flex;flex-direction:column;gap:8px;background:#0F1A24;padding:48px;border-radius:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:34px;line-height:1.6;color:#F4F2EC">$ ssmgate --demo envs<br>$ ssmgate --demo shell bastion --env dev<br>$ ssmgate --demo db --env dev<br>$ ssmgate --demo tunnel --env prod</p>
+</div>
+<p style="font-size:32px;line-height:1.4;width:1500px">Mismos pasos que el uso real, un puerto TCP real en localhost y una shell y un psql simulados.</p>
+
+</section>
+<section id="retos" data-transition="fade" style="background:#F4F2EC;color:#0F1A24;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:28px;font-weight:600;color:#B5561A;letter-spacing:2px;text-transform:uppercase">Retos y siguientes pasos</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">Lo que costó y lo que viene</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:64px">
+<div style="display:flex;flex-direction:column;gap:24px">
+<h3 style="font-size:40px;font-weight:600">Retos técnicos</h3>
+<ul style="font-size:30px;line-height:1.5;color:#4A5568">
+<li>El protocolo SSM no está en el SDK: hubo que integrar el plugin</li>
+<li>SSL a través de un túnel: verify-ca</li>
+<li>Usuario de BD distinto del usuario SSO</li>
+<li>Login sin navegador en WSL</li>
+</ul>
+</div>
+<div style="display:flex;flex-direction:column;gap:24px">
+<h3 style="font-size:40px;font-weight:600">Próximos pasos</h3>
+<ul style="font-size:30px;line-height:1.5;color:#4A5568">
+<li>Embeber el plugin para un binario 100% autónomo</li>
+<li>Soporte para MySQL / Aurora MySQL</li>
+<li>Distribución por Homebrew y Scoop</li>
+<li>Descubrir instancias por etiquetas</li>
+</ul>
+</div>
+</div>
+
+</section>
+<section id="cierre" data-transition="fade" style="background:#0F1A24;color:#F4F2EC;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:center;gap:48px">
+<div style="position:absolute;left:0;top:0;width:24px;height:1080px;background:#E8833A"></div>
+<h2 style="font-size:120px;font-weight:700;line-height:1.0">Gracias</h2>
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:36px;color:#E8833A">github.com/dapasa/ssmgate</p>
+<p style="font-size:32px;color:#C9D3DC">Binarios: github.com/dapasa/ssmgate/releases</p>
+<p style="font-size:32px;color:#C9D3DC">Pruébalo: ssmgate --demo envs</p>
+</div>
+<p style="font-size:32px;color:#8FA1B3">Daniel Passarelli · Máster en Programación con IA</p>
+
+</section>
+
+</body></html>

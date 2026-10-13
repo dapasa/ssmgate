@@ -22,7 +22,7 @@ que cualquier equipo que use AWS puede configurar con un archivo YAML para:
 |---|---|
 | Repositorio | https://github.com/dapasa/ssmgate |
 | Publicación (binarios descargables) | https://github.com/dapasa/ssmgate/releases |
-| Presentación (slides) | _TODO: añadir URL_ |
+| Presentación (slides) | [docs/slides/ssmgate-tfm.pdf](docs/slides/ssmgate-tfm.pdf) |
 | Vídeo de la explicación | _TODO: añadir URL_ |
 | Usuario y contraseña de prueba | **No aplica**: no hay login propio. Para probarlo sin cuenta de AWS se usa el **modo demo** (`--demo`). |
 
@@ -310,7 +310,7 @@ ssmgate/
 ├── docs/
 │   ├── DESARROLLO_IA.md        cómo se usó la IA en el proyecto
 │   ├── GUION_VIDEO.md          guion del vídeo de presentación
-│   └── slides/                 presentación del TFM
+│   └── slides/                 presentación del TFM (PDF y HTML)
 ├── .github/workflows/          CI (lint + tests + build) y Release (GoReleaser)
 ├── .goreleaser.yaml            empaquetado multiplataforma
 ├── .golangci.yml               configuración del linter
