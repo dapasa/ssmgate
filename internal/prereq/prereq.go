@@ -99,9 +99,14 @@ func PortOpen(port int) bool {
 }
 
 // EnsurePortFree fails if something already listens on the local port.
+//
+// It binds the port instead of dialling it: binding answers immediately on
+// every OS, while dialling a closed loopback port on Windows can take seconds.
 func EnsurePortFree(port int) error {
-	if PortOpen(port) {
+	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
+	if err != nil {
 		return ui.Errorf("local port %d is already in use. Close the other process or change db.local_port.", port)
 	}
+	_ = ln.Close()
 	return nil
 }

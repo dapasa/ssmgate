@@ -116,7 +116,7 @@ func TestShellDemo(t *testing.T) {
 
 func TestTunnelBlocksUntilCancelled(t *testing.T) {
 	path, port := demoConfig(t)
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	start := time.Now()
@@ -124,7 +124,7 @@ func TestTunnelBlocksUntilCancelled(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if time.Since(start) < 250*time.Millisecond {
+	if time.Since(start) < 2900*time.Millisecond {
 		t.Error("tunnel must block until the context is cancelled")
 	}
 	for _, want := range []string{"Port      : " + strconv.Itoa(port), "IAM auth token", "PGPASSWORD=", "sslmode=verify-ca"} {

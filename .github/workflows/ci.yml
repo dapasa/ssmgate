@@ -35,7 +35,15 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Unit tests
-        run: go test -race -coverprofile=coverage.out ./...
+        shell: bash
+        # Failing test lines are also emitted as annotations, so they are
+        # visible on the run summary without opening the raw log.
+        run: |
+          set +e
+          go test -race -coverprofile=coverage.out ./... 2>&1 | tee test.log
+          status=${PIPESTATUS[0]}
+          grep -E -- '--- FAIL|_test\.go:[0-9]+:|panic:' test.log | sed 's/^/::error::/'
+          exit $status
         env:
           CGO_ENABLED: "1"
       - name: Coverage summary
