@@ -310,6 +310,7 @@ ssmgate/
 ├── docs/
 │   ├── DESARROLLO_IA.md        cómo se usó la IA en el proyecto
 │   ├── GUION_VIDEO.md          guion del vídeo de presentación
+│   ├── EXPLICACION_CODIGO.md   recorrido guiado por el código (vídeo y defensa)
 │   └── slides/                 presentación del TFM (PDF y HTML)
 ├── .github/workflows/          CI (lint + tests + build) y Release (GoReleaser)
 ├── .goreleaser.yaml            empaquetado multiplataforma
