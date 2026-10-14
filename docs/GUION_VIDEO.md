@@ -1,4 +1,4 @@
-# Guion del vídeo (≈ 8–10 min)
+# Guion del vídeo (≈ 13–14 min)
 
 Grabación de pantalla obligatoria; cámara opcional. Prepara antes:
 
@@ -15,10 +15,10 @@ Grabación de pantalla obligatoria; cámara opcional. Prepara antes:
 | 2:30 | Slide "Cómo funciona" | Recorrido de `ssmgate db`: SSO → rol → túnel → token IAM → psql. |
 | 3:30 | **Terminal** | `ssmgate --demo envs`<br>`ssmgate --demo shell bastion --env dev` → `whoami`, `hostname`, `exit`<br>`ssmgate --demo db --env dev` → `select current_user;`, `\conninfo`, `\q`<br>`ssmgate --demo tunnel --env prod` → muestra la confirmación, escribe `prod` y luego Ctrl-C<br>`ssmgate db` sin `--env` → error explicativo |
 | 5:30 | **Editor** | `ssmgate config init`, el YAML de ejemplo, un error a propósito (p. ej. `via: nada`) y `ssmgate config validate` mostrando todos los errores. |
-| 6:30 | **Código** | Sigue la sección 11 de [EXPLICACION_CODIGO.md](EXPLICACION_CODIGO.md): capas, interfaz `Connector`, inyección de dependencias, config, flujo de `OpenTunnel` y tests. |
-| 7:30 | **GitHub** | Workflow de CI en verde (3 SO) y Releases con los 6 binarios. |
-| 8:00 | Slide "Desarrollo con IA" | Cómo usaste Claude Code, cómo verificaste el código y un ejemplo concreto. |
-| 9:00 | Slides "Retos" + "Gracias" | Retos, próximos pasos y enlaces. |
+| 6:30 | **Código** (≈ 6 min) | Sigue la sección 11 de [EXPLICACION_CODIGO.md](EXPLICACION_CODIGO.md): capas, interfaz `Connector`, inyección de dependencias, config, flujo de `OpenTunnel`, tests y CI en GitHub Actions. |
+| 12:30 | **GitHub** | Releases con los 6 binarios. |
+| 12:45 | Slide "Desarrollo con IA" | Cómo usaste Claude Code, cómo verificaste el código y un ejemplo concreto. |
+| 13:30 | Slides "Retos" + "Gracias" | Retos, próximos pasos y enlaces. |
 
 Consejo: ensaya la demo una vez. En modo demo hay pequeñas pausas
 simuladas entre pasos, pensadas para que se pueda seguir en vídeo.
